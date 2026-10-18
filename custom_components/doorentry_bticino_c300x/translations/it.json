@@ -1,0 +1,35 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Door Entry BTicino C300X",
+        "description": "Indirizzo dell'add-on. Lascia il valore predefinito; se non si connette, inserisci l'IP di Home Assistant.",
+        "data": {
+          "host": "Host dell'add-on",
+          "port": "Porta"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossibile raggiungere l'add-on. Verifica che sia avviato e controlla host/porta."
+    },
+    "abort": {
+      "already_configured": "Integrazione già configurata."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Door Entry BTicino C300X",
+        "description": "Aggiorna host e porta dell'add-on (usa l'IP di Home Assistant se il nome interno non si risolve).",
+        "data": {
+          "host": "Host dell'add-on",
+          "port": "Porta"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossibile raggiungere l'add-on."
+    }
+  }
+}
