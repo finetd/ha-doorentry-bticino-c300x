@@ -6,6 +6,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
 )
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
@@ -19,6 +20,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry,
     async_add_entities([
         RingingBinarySensor(coordinator, entry.entry_id),
         MissedBinarySensor(coordinator, entry.entry_id),
+        ConnectedBinarySensor(coordinator, entry.entry_id),
     ])
 
 
@@ -63,3 +65,24 @@ class MissedBinarySensor(BticinoEntity, BinarySensorEntity):
             "missed_count": d.get("missed_count"),
             "last_missed": d.get("last_missed"),
         }
+
+
+class ConnectedBinarySensor(BticinoEntity, BinarySensorEntity):
+    _attr_name = "Connesso"
+    _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(self, coordinator, entry_id):
+        super().__init__(coordinator, entry_id)
+        self._attr_unique_id = f"{entry_id}_connected"
+
+    @property
+    def is_on(self) -> bool:
+        # il citofono è "connesso" se l'add-on risponde e la registrazione SIP è attiva
+        if not self.coordinator.last_update_success:
+            return False
+        return bool((self.coordinator.data or {}).get("connected"))
+
+    @property
+    def extra_state_attributes(self):
+        return {"last_register": (self.coordinator.data or {}).get("last_register")}
