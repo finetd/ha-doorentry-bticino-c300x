@@ -15,7 +15,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry,
     coordinator = hass.data[DOMAIN][entry.entry_id]
 
     # luce scale: sempre presente
-    async_add_entities([LightButton(coordinator, entry.entry_id)])
+    async_add_entities([
+        LightButton(coordinator, entry.entry_id),
+        RecordButton(coordinator, entry.entry_id),
+    ])
 
     known: set[str] = set()
 
@@ -48,6 +51,18 @@ class LightButton(BticinoEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         await self.coordinator.client.send_cmd(CMD_LIGHT)
+
+
+class RecordButton(BticinoEntity, ButtonEntity):
+    _attr_name = "Registra 30 secondi"
+    _attr_icon = "mdi:record-rec"
+
+    def __init__(self, coordinator, entry_id):
+        super().__init__(coordinator, entry_id)
+        self._attr_unique_id = f"{entry_id}_record"
+
+    async def async_press(self) -> None:
+        await self.coordinator.client.send_cmd("record?duration=30")
 
 
 class LockButton(BticinoEntity, ButtonEntity):
