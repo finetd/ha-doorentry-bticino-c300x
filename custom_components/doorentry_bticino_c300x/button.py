@@ -17,6 +17,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry,
     # luce scale: sempre presente
     async_add_entities([
         LightButton(coordinator, entry.entry_id),
+        SnapshotButton(coordinator, entry.entry_id),
         RecordButton(coordinator, entry.entry_id),
     ])
 
@@ -51,6 +52,18 @@ class LightButton(BticinoEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         await self.coordinator.client.send_cmd(CMD_LIGHT)
+
+
+class SnapshotButton(BticinoEntity, ButtonEntity):
+    _attr_name = "Cattura istantanea"
+    _attr_icon = "mdi:camera"
+
+    def __init__(self, coordinator, entry_id):
+        super().__init__(coordinator, entry_id)
+        self._attr_unique_id = f"{entry_id}_snapshot"
+
+    async def async_press(self) -> None:
+        await self.coordinator.client.send_cmd("capture")
 
 
 class RecordButton(BticinoEntity, ButtonEntity):
