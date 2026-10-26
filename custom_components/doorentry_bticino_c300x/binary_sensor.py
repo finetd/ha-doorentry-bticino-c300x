@@ -77,12 +77,26 @@ class ConnectedBinarySensor(BticinoEntity, BinarySensorEntity):
         self._attr_unique_id = f"{entry_id}_connected"
 
     @property
+    def available(self) -> bool:
+        # Il sensore "Connesso" dev'essere SEMPRE disponibile per riflettere lo stato
+        # reale della catena: se l'add-on e' spento, HA deve mostrare "non connesso",
+        # non "non disponibile" (grigio) che manterrebbe l'ultimo valore noto.
+        return True
+
+    @property
     def is_on(self) -> bool:
-        # il citofono è "connesso" se l'add-on risponde e la registrazione SIP è attiva
+        # Connesso = add-on raggiungibile E baresip registrato sul cloud BTicino.
+        # Entrambi devono essere veri: se l'add-on e' spento, last_update_success va a
+        # False (le GET /state falliscono) e il sensore diventa correttamente off.
         if not self.coordinator.last_update_success:
             return False
         return bool((self.coordinator.data or {}).get("connected"))
 
     @property
     def extra_state_attributes(self):
-        return {"last_register": (self.coordinator.data or {}).get("last_register")}
+        d = self.coordinator.data or {}
+        return {
+            "last_register": d.get("last_register"),
+            "addon_reachable": self.coordinator.last_update_success,
+            "sip_registered": bool(d.get("connected")),
+        }
