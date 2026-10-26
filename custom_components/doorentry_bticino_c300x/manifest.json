@@ -5,11 +5,11 @@
     "@finetd"
   ],
   "config_flow": true,
-  "dependencies": [],
+  "dependencies": ["ffmpeg"],
   "documentation": "https://github.com/finetd/ha-doorentry-bticino-c300x",
   "integration_type": "hub",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/finetd/ha-doorentry-bticino-c300x/issues",
   "requirements": [],
-  "version": "1.12.0"
+  "version": "1.14.0"
 }
