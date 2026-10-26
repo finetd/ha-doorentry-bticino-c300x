@@ -32,13 +32,13 @@ class DoorbellCamera(BticinoEntity, Camera):
 
 
 class LastRecordingCamera(BticinoEntity, Camera):
-    """Mostra la thumbnail dell'ultima registrazione video.
+    """Riproduce l'ultima registrazione video del citofono.
 
-    - Nella lista entita' e nelle dashboard appare come immagine (primo frame del MP4),
-      aggiornata ogni volta che una registrazione termina.
-    - Il feature STREAM espone l'URL del MP4 cosi' il player di HA (ffmpeg/go2rtc) possa
-      riprodurlo in play. Il MP4 e' un file statico, non uno stream live, quindi la
-      riproduzione finisce quando il video termina.
+    - async_camera_image: thumbnail (primo frame del MP4) per lista entita' e card.
+    - stream_source: URL del MP4 convertito da ffmpeg/stream di HA in HLS live. Il video
+      non e' uno stream continuo ma un file: quando finisce, lo stream si chiude. Al
+      prossimo click (o aggiornamento) parte da capo. Per sfogliare la cronologia completa
+      di tutte le registrazioni, usa il menu Media di HA (platform media_source).
     """
     _attr_name = "Ultima registrazione video"
     _attr_icon = "mdi:video-box"
@@ -49,18 +49,18 @@ class LastRecordingCamera(BticinoEntity, Camera):
         Camera.__init__(self)
         self._attr_unique_id = f"{entry_id}_last_recording_camera"
 
-    def _recording_name(self) -> str | None:
+    def _rec_name(self) -> str | None:
         rec = (self.coordinator.data or {}).get("last_recording")
         return rec.get("name") if rec else None
 
     async def async_camera_image(self, width=None, height=None) -> bytes | None:
-        name = self._recording_name()
+        name = self._rec_name()
         if not name:
             return None
         return await self.coordinator.client.get_recording_thumbnail(name)
 
     async def stream_source(self) -> str | None:
-        name = self._recording_name()
+        name = self._rec_name()
         if not name:
             return None
         return f"{self.coordinator.client.base}/recordings/{name}"
