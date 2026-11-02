@@ -14,13 +14,13 @@ from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN
+from .const import API_BASE, DOMAIN, RECORDINGS_DIR
 from .entity import BticinoEntity
 
 
 # Path fisso al symlink dell'ultima registrazione: la directory /share e' montata sia
 # dall'add-on sia dal core di HA, quindi il path e' valido per ffmpeg di HA.
-LAST_RECORDING_PATH = "/share/doorentry_bticino_c300x/recordings/last.mp4"
+LAST_RECORDING_PATH = f"{RECORDINGS_DIR}/last.mp4"
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry,
@@ -73,5 +73,5 @@ class LastRecordingCamera(BticinoEntity, FFmpegCamera):
             "name": rec.get("name"),
             "size": rec.get("size"),
             "mtime": rec.get("mtime"),
-            "video_url": f"{self.coordinator.client.base}/recordings/{rec.get('name')}",
+            "video_url": f"{API_BASE}/recordings/{rec.get('name')}",
         }
