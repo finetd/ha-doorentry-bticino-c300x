@@ -43,19 +43,17 @@ class AddonClient:
         except Exception:  # noqa: BLE001
             return None
 
-    async def get_recording_thumbnail(self, name: str) -> bytes | None:
-        """Scarica la thumbnail (.jpg) del video dato dal nome del MP4 (es: 'last.mp4')."""
-        if not name.endswith(".mp4"):
-            return None
-        jpg = name[:-4] + ".jpg"
+    async def list_recordings(self) -> list:
+        """Elenca le registrazioni disponibili dall'add-on."""
         try:
             async with async_timeout.timeout(10):
-                async with self._session.get(f"{self._base}/recordings/{jpg}") as resp:
+                async with self._session.get(f"{self._base}/recordings") as resp:
                     if resp.status != 200:
-                        return None
-                    return await resp.read()
+                        return []
+                    return await resp.json(content_type=None)
         except Exception:  # noqa: BLE001
-            return None
+            return []
+
 
     async def send_cmd(self, action: str) -> bool:
         try:
