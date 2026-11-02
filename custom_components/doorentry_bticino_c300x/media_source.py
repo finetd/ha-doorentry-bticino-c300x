@@ -17,15 +17,16 @@ from __future__ import annotations
 from datetime import datetime
 
 from homeassistant.components.media_player import MediaClass, MediaType
-from homeassistant.components.media_source.models import (
+from homeassistant.components.media_source import (
     BrowseMediaSource,
     MediaSource,
     MediaSourceItem,
     PlayMedia,
+    Unresolvable,
 )
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
+from .const import API_BASE, DOMAIN
 
 
 async def async_get_media_source(hass: HomeAssistant) -> "DoorbellMediaSource":
@@ -50,12 +51,12 @@ class DoorbellMediaSource(MediaSource):
         item.identifier ha forma "<entry_id>/<filename>", es.
         "01HEXAMPLE1234/call-20261026-093558.mp4"
         """
-        entry_id, _, filename = item.identifier.partition("/")
-        coord = self._coordinators().get(entry_id)
-        if not coord or not filename:
-            raise ValueError("registrazione non trovata")
-        url = f"{coord.client.base}/recordings/{filename}"
-        return PlayMedia(url, "video/mp4")
+        _, _, filename = item.identifier.partition("/")
+        if not filename.endswith(".mp4") or "/" in filename or ".." in filename:
+            raise Unresolvable("registrazione non trovata")
+        # Percorso relativo servito da Home Assistant (views.py): HA lo firma da solo,
+        # cosi' il browser lo apre con il proprio login, anche da remoto.
+        return PlayMedia(f"{API_BASE}/recordings/{filename}", "video/mp4")
 
     async def async_browse_media(self, item: MediaSourceItem) -> BrowseMediaSource:
         """Costruisce l'albero del browser Media di HA."""
@@ -90,7 +91,7 @@ class DoorbellMediaSource(MediaSource):
         entry_id, _, filename = item.identifier.partition("/")
         coord = coordinators.get(entry_id)
         if not coord:
-            raise ValueError("configurazione non trovata")
+            raise Unresolvable("configurazione non trovata")
 
         if not filename:
             # Lista tutti i video chiedendo /recordings all'add-on
@@ -113,7 +114,7 @@ class DoorbellMediaSource(MediaSource):
                     title=title,
                     can_play=True,
                     can_expand=False,
-                    thumbnail=f"{coord.client.base}/snapshot",
+                    thumbnail=_signed(self.hass, f"{API_BASE}/snapshot.jpg"),
                 ))
             return BrowseMediaSource(
                 domain=DOMAIN,
@@ -137,3 +138,13 @@ class DoorbellMediaSource(MediaSource):
             can_play=True,
             can_expand=False,
         )
+
+
+def _signed(hass: HomeAssistant, path: str) -> str | None:
+    """Firma un percorso per poterlo usare come <img> nel browser (anteprima)."""
+    try:
+        from datetime import timedelta
+        from homeassistant.components.http.auth import async_sign_path
+        return async_sign_path(hass, path, timedelta(hours=1))
+    except Exception:  # noqa: BLE001
+        return None
