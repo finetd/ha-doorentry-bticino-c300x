@@ -18,3 +18,10 @@ CMD_ANSWERING_ON = "answering_on"
 CMD_ANSWERING_OFF = "answering_off"
 CMD_LIGHT = "light"
 CMD_DOOR = "door"
+
+# Percorsi dei file prodotti dall'add-on. /share e' montato anche in Home Assistant Core,
+# quindi l'integrazione puo' leggerli direttamente e servirli al browser con il login di HA.
+SHARE_DIR = "/share/doorentry_bticino_c300x"
+RECORDINGS_DIR = f"{SHARE_DIR}/recordings"
+SNAPSHOT_FILE = f"{SHARE_DIR}/doorbell.jpg"
+API_BASE = f"/api/{DOMAIN}"
